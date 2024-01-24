@@ -33,4 +33,8 @@ public class Person
   public int getAge(int limit){
     return Math.min(limit, age);
   }
+
+  public <T> int getAge(int limit, T other){
+    return getAge(limit);
+  }
 }

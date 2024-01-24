@@ -7,6 +7,7 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.utils.SourceRoot;
+import com.spun.util.FormattedException;
 
 import java.lang.reflect.Method;
 import java.nio.file.Paths;
@@ -22,7 +23,7 @@ public class ParserUtilities {
         MethodDeclaration methodDeclaration = cu.findFirst(MethodDeclaration.class, md -> findMethod(method, md)).orElse(null);
 
         if (methodDeclaration == null) {
-            throw new RuntimeException("Method not found in the source file");
+            throw new FormattedException("Method Not Found:\n%s.%s(params...)",  method.getDeclaringClass().getSimpleName(),method.getName() );
         }
 
         // Return the range of the method
