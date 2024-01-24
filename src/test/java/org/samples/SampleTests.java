@@ -3,6 +3,7 @@ package org.samples;
 
 import com.github.javaparser.Range;
 import org.approvaltests.Approvals;
+import org.approvaltests.core.Options;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -11,11 +12,11 @@ public class SampleTests
 {
   @Test
   public void testLineNumbersForPerson() throws Exception {
-    String expected = """
-    
-    """;
+    var expected = """
+      (line 16,col 3)-(line 19,col 3)
+      """;
     var m = Person.class.getMethod("getFirstName");
-    Range range = getLineNumbersForMethod(m);
-    assertEquals(5, 5);
+    Range range = ParserUtilities.getLineNumbersForMethod(m);
+    Approvals.verify(range, new Options().inline(expected));
   }
 }
