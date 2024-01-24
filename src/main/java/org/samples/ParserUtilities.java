@@ -16,6 +16,36 @@ import java.util.stream.Collectors;
 public class ParserUtilities {
 
     public static Range getLineNumbersForMethod(Method method) throws Exception {
+        CompilationUnit cu = getCompilationUnit(method);
+
+        // Find the method in the AST
+        MethodDeclaration methodDeclaration = cu.findFirst(MethodDeclaration.class, md -> findMethod(method, md)).orElse(null);
+
+        if (methodDeclaration == null) {
+            throw new RuntimeException("Method not found in the source file");
+        }
+
+        // Return the range of the method
+        return methodDeclaration.getRange().orElseThrow(() ->
+                new RuntimeException("Range not found for the method"));
+    }
+
+    private static boolean findMethod(Method method, MethodDeclaration md) {
+        // Convert the method's parameter types to a list of their class names
+        List<String> paramTypes = List.of(method.getParameterTypes()).stream()
+                .map(Class::getCanonicalName)
+                .collect(Collectors.toList());
+
+        if (!md.getNameAsString().equals(method.getName())) {
+            return false;
+        }
+        List<String> astParamTypes = md.getParameters().stream()
+                .map(p -> p.getType().asString())
+                .collect(Collectors.toList());
+        return astParamTypes.equals(paramTypes);
+    }
+
+    private static CompilationUnit getCompilationUnit(Method method) {
         String sourceRootPath = "src/main/java"; // Adjust this path if your structure is different
 
         // Parsing the source file
@@ -27,29 +57,6 @@ public class ParserUtilities {
         } catch (ParseProblemException e) {
             throw new RuntimeException("Error parsing the source file: " + e.getMessage(), e);
         }
-
-        // Convert the method's parameter types to a list of their class names
-        List<String> paramTypes = List.of(method.getParameterTypes()).stream()
-                .map(Class::getCanonicalName)
-                .collect(Collectors.toList());
-
-        // Find the method in the AST
-        MethodDeclaration methodDeclaration = cu.findFirst(MethodDeclaration.class, md -> {
-            if (!md.getNameAsString().equals(method.getName())) {
-                return false;
-            }
-            List<String> astParamTypes = md.getParameters().stream()
-                    .map(p -> p.getType().asString())
-                    .collect(Collectors.toList());
-            return astParamTypes.equals(paramTypes);
-        }).orElse(null);
-
-        if (methodDeclaration == null) {
-            throw new RuntimeException("Method not found in the source file");
-        }
-
-        // Return the range of the method
-        return methodDeclaration.getRange().orElseThrow(() ->
-                new RuntimeException("Range not found for the method"));
+        return cu;
     }
 }
