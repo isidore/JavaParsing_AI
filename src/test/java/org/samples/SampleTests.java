@@ -19,4 +19,14 @@ public class SampleTests
     Range range = ParserUtilities.getLineNumbersForMethod(m);
     Approvals.verify(range, new Options().inline(expected));
   }
+
+  @Test
+  public void testLineNumbersForOverload() throws Exception {
+    var expected = """
+      (line 32,col 3)-(line 35,col 3)
+      """;
+    var m = Person.class.getMethod("getAge", int.class);
+    Range range = ParserUtilities.getLineNumbersForMethod(m);
+    Approvals.verify(range, new Options().inline(expected));
+  }
 }

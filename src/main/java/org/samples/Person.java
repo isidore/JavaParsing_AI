@@ -29,4 +29,8 @@ public class Person
   {
     return age;
   }
+
+  public int getAge(int limit){
+    return Math.min(limit, age);
+  }
 }
