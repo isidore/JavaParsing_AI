@@ -20,4 +20,10 @@ public class Person
 
   public void getAge(int limit, List<Integer> other){
   }
+
+  public void getAge(String limit, T... other){
+  }
+
+  public void getAge(int limit, T[][] other){
+  }
 }
