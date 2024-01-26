@@ -77,6 +77,11 @@ public class ParserUtilities {
             return true;
         }
 
+        // Check if the parsed type is a List with a wildcard generic type
+        if (parsed.getType().isClassOrInterfaceType() && parsed.getType().asClassOrInterfaceType().getNameAsString().equals("List")) {
+            return compiledType.equals(List.class.getCanonicalName());
+        }
+
         // Check if the parsed type is a type parameter (generic)
         for (TypeParameter typeParameter : typeParameters) {
             if (isArray && arrayComponentType.equals(typeParameter.getNameAsString())) {

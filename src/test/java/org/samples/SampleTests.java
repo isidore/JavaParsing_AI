@@ -6,6 +6,8 @@ import org.approvaltests.Approvals;
 import org.approvaltests.core.Options;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SampleTests
@@ -46,6 +48,16 @@ public class SampleTests
       (line 18,col 3)-(line 19,col 3)
       """;
     var m = Person.class.getMethod("getAge", int.class, Object[].class);
+    Range range = ParserUtilities.getLineNumbersForMethod(m);
+    Approvals.verify(range, new Options().inline(expected));
+  }
+
+  @Test
+  public void testLineNumbersForGenericLists() throws Exception {
+    var expected = """
+      (line 21,col 3)-(line 22,col 3)
+      """;
+    var m = Person.class.getMethod("getAge", int.class, List.class);
     Range range = ParserUtilities.getLineNumbersForMethod(m);
     Approvals.verify(range, new Options().inline(expected));
   }
