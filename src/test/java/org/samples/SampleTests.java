@@ -43,7 +43,7 @@ public class SampleTests
   @Test
   public void testLineNumbersForGenericsArrays() throws Exception {
     var expected = """
-      (line 13,col 3)-(line 14,col 3)
+      (line 18,col 3)-(line 19,col 3)
       """;
     var m = Person.class.getMethod("getAge", int.class, Object[].class);
     Range range = ParserUtilities.getLineNumbersForMethod(m);

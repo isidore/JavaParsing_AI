@@ -68,6 +68,10 @@ public class ParserUtilities {
         // Get the parsed parameter's type as a string
         String parsedType = parsed.getType().asString();
 
+        // Handle array types
+        boolean isArray = parsed.getType().isArrayType();
+        String arrayComponentType = isArray ? parsed.getType().getElementType().asString() : null;
+
         // If parsed type matches the compiled type directly, return true
         if (parsedType.equals(compiledType)) {
             return true;
@@ -75,7 +79,10 @@ public class ParserUtilities {
 
         // Check if the parsed type is a type parameter (generic)
         for (TypeParameter typeParameter : typeParameters) {
-            if (parsedType.equals(typeParameter.getNameAsString())) {
+            if (isArray && arrayComponentType.equals(typeParameter.getNameAsString())) {
+                // Check if it's an array of generics and compiled type is an array of Object
+                return compiledType.equals(Object[].class.getCanonicalName());
+            } else if (parsedType.equals(typeParameter.getNameAsString())) {
                 // If the parsed type is a generic type, check if it's meant to be Object (due to type erasure)
                 return compiledType.equals(Object.class.getCanonicalName());
             }
