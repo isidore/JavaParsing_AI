@@ -1,40 +1,23 @@
 package org.samples;
 
+import java.util.List;
+
 public class Person
 {
-  private final String  firstName;
-  private final String  lastName;
-  private final boolean isMale;
-  private final int     age;
-  public Person(String firstName, String lastName, boolean isMale, int age)
+  public void getFirstName()
   {
-    this.firstName = firstName;
-    this.lastName = lastName;
-    this.isMale = isMale;
-    this.age = age;
   }
-  public String getFirstName()
-  {
-    return firstName;
+  public void getAge(){
   }
-  public String getLastName()
-  {
-    return lastName;
-  }
-  public boolean isMale()
-  {
-    return isMale;
-  }
-  public int getAge()
-  {
-    return age;
+  public void getAge(int limit){
   }
 
-  public int getAge(int limit){
-    return Math.min(limit, age);
+  public <T> void getAge(int limit, T other){
   }
 
-  public <T> int getAge(int limit, T other){
-    return getAge(limit);
+  public <T> void getAge(int limit, T[] other){
+  }
+
+  public void getAge(int limit, List<Integer> other){
   }
 }

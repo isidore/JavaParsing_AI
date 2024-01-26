@@ -1,16 +1,18 @@
 package org.samples;
 
-import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseProblemException;
 import com.github.javaparser.Range;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.type.Type;
+import com.github.javaparser.ast.body.Parameter;
+import com.github.javaparser.ast.type.TypeParameter;
 import com.github.javaparser.utils.SourceRoot;
 import com.spun.util.FormattedException;
 
 import java.lang.reflect.Method;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,7 +25,7 @@ public class ParserUtilities {
         MethodDeclaration methodDeclaration = cu.findFirst(MethodDeclaration.class, md -> findMethod(method, md)).orElse(null);
 
         if (methodDeclaration == null) {
-            throw new FormattedException("Method Not Found:\n%s.%s(params...)",  method.getDeclaringClass().getSimpleName(),method.getName() );
+            throw new FormattedException("Method Not Found:\n%s.%s(params...)", method.getDeclaringClass().getSimpleName(), method.getName());
         }
 
         // Return the range of the method
@@ -32,18 +34,55 @@ public class ParserUtilities {
     }
 
     private static boolean findMethod(Method method, MethodDeclaration md) {
-        // Convert the method's parameter types to a list of their class names
-        List<String> paramTypes = List.of(method.getParameterTypes()).stream()
-                .map(Class::getCanonicalName)
-                .collect(Collectors.toList());
 
         if (!md.getNameAsString().equals(method.getName())) {
             return false;
         }
-        List<String> astParamTypes = md.getParameters().stream()
-                .map(p -> p.getType().asString())
+
+        // Convert the method's parameter types to a list of their class names
+        List<String> compiledParameterTypes = Arrays.stream(method.getParameterTypes())
+                .map(Class::getCanonicalName)
                 .collect(Collectors.toList());
-        return astParamTypes.equals(paramTypes);
+        // Compare parameter types, allowing for generics
+        NodeList<Parameter> parsedParameterTypes = md.getParameters();
+        if (parsedParameterTypes.size() != compiledParameterTypes.size()) {
+            return false;
+        }
+
+        for (int i = 0; i < parsedParameterTypes.size(); i++) {
+            Parameter parsed = parsedParameterTypes.get(i);
+            NodeList<TypeParameter> typeParameters = md.getTypeParameters();
+            String compiledType = compiledParameterTypes.get(i);
+            boolean matched = isCompiledTypeSameAsParsedType(parsed, compiledType, typeParameters);
+            if (!matched) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
+
+    public static boolean isCompiledTypeSameAsParsedType(Parameter parsed, String compiledType, NodeList<TypeParameter> typeParameters) {
+        // Get the parsed parameter's type as a string
+        String parsedType = parsed.getType().asString();
+
+        // If parsed type matches the compiled type directly, return true
+        if (parsedType.equals(compiledType)) {
+            return true;
+        }
+
+        // Check if the parsed type is a type parameter (generic)
+        for (TypeParameter typeParameter : typeParameters) {
+            if (parsedType.equals(typeParameter.getNameAsString())) {
+                // If the parsed type is a generic type, check if it's meant to be Object (due to type erasure)
+                return compiledType.equals(Object.class.getCanonicalName());
+            }
+        }
+
+        // If none of the above conditions are met, the types are not the same
+        return false;
     }
 
     private static CompilationUnit getCompilationUnit(Method method) {
