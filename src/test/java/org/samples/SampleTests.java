@@ -6,59 +6,39 @@ import org.approvaltests.Approvals;
 import org.approvaltests.core.Options;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class SampleTests
-{
-  @Test
-  public void testLineNumbersForPerson() throws Exception {
-    var expected = """
-      (line 7,col 3)-(line 9,col 3)
-      """;
-    var m = Person.class.getMethod("getFirstName");
-    Range range = ParserUtilities.getLineNumbersForMethod(m);
-    Approvals.verify(range, new Options().inline(expected));
-  }
+public class SampleTests {
+    @Test
+    public void testLineNumbersForPerson() throws Exception {
 
-  @Test
-  public void testLineNumbersForOverload() throws Exception {
-    var expected = """
-      (line 12,col 3)-(line 13,col 3)
-      """;
-    var m = Person.class.getMethod("getAge", int.class);
-    Range range = ParserUtilities.getLineNumbersForMethod(m);
-    Approvals.verify(range, new Options().inline(expected));
-  }
+        var m = new Method[]{
+                Person.class.getMethod("getFirstName"),
+                Person.class.getMethod("getAge", int.class),
+                Person.class.getMethod("getAge", int.class, Object.class),
+                Person.class.getMethod("getAge", int.class, Object[].class),
+                Person.class.getMethod("getAge", int.class, List.class),
+                Person.class.getMethod("getAge", int.class, Map.class)
 
-  @Test
-  public void testLineNumbersForGenerics() throws Exception {
-    var expected = """
-      (line 15,col 3)-(line 16,col 3)
-      """;
-    var m = Person.class.getMethod("getAge", int.class, Object.class);
-    Range range = ParserUtilities.getLineNumbersForMethod(m);
-    Approvals.verify(range, new Options().inline(expected));
-  }
+        };
+        Approvals.verifyAll("", m, SampleTests::getLineNumbers);
+    }
 
-  @Test
-  public void testLineNumbersForGenericsArrays() throws Exception {
-    var expected = """
-      (line 18,col 3)-(line 19,col 3)
-      """;
-    var m = Person.class.getMethod("getAge", int.class, Object[].class);
-    Range range = ParserUtilities.getLineNumbersForMethod(m);
-    Approvals.verify(range, new Options().inline(expected));
-  }
+    private static String getLineNumbers(Method m) {
+        String methodName = m.toString().substring("public void org.samples.".length());
+        try {
 
-  @Test
-  public void testLineNumbersForGenericLists() throws Exception {
-    var expected = """
-      (line 21,col 3)-(line 22,col 3)
-      """;
-    var m = Person.class.getMethod("getAge", int.class, List.class);
-    Range range = ParserUtilities.getLineNumbersForMethod(m);
-    Approvals.verify(range, new Options().inline(expected));
-  }
+            Range range = ParserUtilities.getLineNumbersForMethod(m);
+            var text = String.format("%s Lines:%s-%s", methodName, range.begin.line, range.end.line);
+            return text;
+        } catch (Exception e) {
+            return String.format("%s %s", methodName, e.getClass().getSimpleName());
+        }
+    }
+
+
 }
