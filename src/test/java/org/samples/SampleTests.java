@@ -1,6 +1,5 @@
 package org.samples;
 
-
 import com.github.javaparser.Range;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.MethodDeclaration;
@@ -22,15 +21,15 @@ public class SampleTests {
     @UseReporter(VisualStudioCodeReporter.class)
     public void testLineNumbersForPerson() throws Exception {
         var expected = """
-            Person.getFirstName() Lines:8-10
-            Person.getAge(int) Lines:13-14
-            Person.getAge(int,java.lang.Object) Lines:16-17
-            Person.getAge(int,java.lang.Object[]) Lines:19-20
-            Person.getAge(int,java.util.List) Lines:22-23
-            Person.getAge(int,java.util.Map) Lines:25-26
-            """;
+                Person.getFirstName() Lines:8-10
+                Person.getAge(int) Lines:13-14
+                Person.getAge(int,java.lang.Object) Lines:16-17
+                Person.getAge(int,java.lang.Object[]) Lines:19-20
+                Person.getAge(int,java.util.List) Lines:22-23
+                Person.getAge(int,java.util.Map) Lines:25-26
+                """;
 
-        var m = new Method[]{
+        var m = new Method[] {
                 Person.class.getMethod("getFirstName"),
                 Person.class.getMethod("getAge", int.class),
                 Person.class.getMethod("getAge", int.class, Object.class),
@@ -58,8 +57,17 @@ public class SampleTests {
     public void testParameterConversion() throws Exception {
         CompilationUnit cu = ParserUtilities.getCompilationUnit(ParameterSamples.class.getMethods()[0]);
         MethodDeclaration methodDeclaration = cu.findFirst(MethodDeclaration.class, md -> true).get();
-        String parameterType = ParserUtilities.convertParsedParameterToCompiledTypeSimpleName(methodDeclaration.getParameters().get(0),
-            methodDeclaration.getTypeParameters());
+        String parameterType = ParserUtilities.convertParsedParameterToCompiledTypeSimpleName(
+                methodDeclaration.getParameters().get(0),
+                methodDeclaration.getTypeParameters());
         assertEquals("Map", parameterType);
+        parameterType = ParserUtilities.convertParsedParameterToCompiledTypeSimpleName(
+                methodDeclaration.getParameters().get(1),
+                methodDeclaration.getTypeParameters());
+        assertEquals("Object", parameterType);
+        parameterType = ParserUtilities.convertParsedParameterToCompiledTypeSimpleName(
+                methodDeclaration.getParameters().get(2),
+                methodDeclaration.getTypeParameters());
+        assertEquals("Object[]", parameterType);
     }
 }
