@@ -2,8 +2,13 @@ package org.samples;
 
 
 import com.github.javaparser.Range;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.MethodDeclaration;
+
 import org.approvaltests.Approvals;
 import org.approvaltests.core.Options;
+import org.approvaltests.reporters.UseReporter;
+import org.approvaltests.reporters.macosx.VisualStudioCodeReporter;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
@@ -14,7 +19,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SampleTests {
     @Test
+    @UseReporter(VisualStudioCodeReporter.class)
     public void testLineNumbersForPerson() throws Exception {
+        var expected = """
+            Person.getFirstName() Lines:8-10
+            Person.getAge(int) Lines:13-14
+            Person.getAge(int,java.lang.Object) Lines:16-17
+            Person.getAge(int,java.lang.Object[]) Lines:19-20
+            Person.getAge(int,java.util.List) Lines:22-23
+            Person.getAge(int,java.util.Map) Lines:25-26
+            """;
 
         var m = new Method[]{
                 Person.class.getMethod("getFirstName"),
@@ -25,7 +39,7 @@ public class SampleTests {
                 Person.class.getMethod("getAge", int.class, Map.class)
 
         };
-        Approvals.verifyAll("", m, SampleTests::getLineNumbers);
+        Approvals.verifyAll("", m, SampleTests::getLineNumbers, new Options().inline(expected));
     }
 
     private static String getLineNumbers(Method m) {
@@ -40,5 +54,12 @@ public class SampleTests {
         }
     }
 
-
+    @Test
+    public void testParameterConversion() throws Exception {
+        CompilationUnit cu = ParserUtilities.getCompilationUnit(ParameterSamples.class.getMethods()[0]);
+        MethodDeclaration methodDeclaration = cu.findFirst(MethodDeclaration.class, md -> true).get();
+        String parameterType = ParserUtilities.convertParsedParameterToCompiledTypeSimpleName(methodDeclaration.getParameters().get(0),
+            methodDeclaration.getTypeParameters());
+        assertEquals("Map", parameterType);
+    }
 }

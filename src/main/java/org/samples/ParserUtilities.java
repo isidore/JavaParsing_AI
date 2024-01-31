@@ -6,6 +6,8 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
+import com.github.javaparser.ast.type.ArrayType;
+import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.TypeParameter;
 import com.github.javaparser.utils.SourceRoot;
 import com.spun.util.FormattedException;
@@ -55,37 +57,44 @@ public class ParserUtilities {
     public static boolean isCompiledTypeSameAsParsedType(Parameter parsed, String compiledType, NodeList<TypeParameter> typeParameters) {
         // Get the parsed parameter's type as a string
         String parsedType = parsed.getType().asString();
+        return parsedType.equals(convertParsedParameterToCompiledTypeSimpleName(parsed, typeParameters));
+    }
 
-        // Handle array types
-        boolean isArray = parsed.getType().isArrayType();
-        String arrayComponentType = isArray ? parsed.getType().getElementType().asString() : null;
+    /**
+     * Converts a parsed parameter to a compiled type simple name.
+     * @param parsed
+     * @param typeParameters
+     * @return
+     */
+    public static String convertParsedParameterToCompiledTypeSimpleName(Parameter parsed, NodeList<TypeParameter> typeParameters) {
+        // Get the type of the parsed parameter
+        var parsedType = parsed.getType();
 
-        // If parsed type matches the compiled type directly, return true
-        if (parsedType.equals(compiledType)) {
-            return true;
+        // Check if the parsed type is an array or varargs
+        if (parsedType.isArrayType()) {
+            ArrayType arrayType = parsedType.asArrayType();
+            parsedType = arrayType.getComponentType();
         }
 
-        // Check if the parsed type is a List with a wildcard generic type
-        if (parsed.getType().isClassOrInterfaceType() && parsed.getType().asClassOrInterfaceType().getNameAsString().equals("List")) {
-            return compiledType.equals(List.class.getCanonicalName());
-        }
+        // Check if the parsed type is a generic type
+        if (parsedType.isClassOrInterfaceType()) {
+            ClassOrInterfaceType classOrInterfaceType = parsedType.asClassOrInterfaceType();
+            String parsedTypeName = classOrInterfaceType.getName().asString();
 
-        // Check if the parsed type is a type parameter (generic)
-        for (TypeParameter typeParameter : typeParameters) {
-            if (isArray && arrayComponentType.equals(typeParameter.getNameAsString())) {
-                // Check if it's an array of generics and compiled type is an array of Object
-                return compiledType.equals(Object[].class.getCanonicalName());
-            } else if (parsedType.equals(typeParameter.getNameAsString())) {
-                // If the parsed type is a generic type, check if it's meant to be Object (due to type erasure)
-                return compiledType.equals(Object.class.getCanonicalName());
+            // Iterate over the type parameters
+            for (TypeParameter typeParameter : typeParameters) {
+                // If the parsed type matches a type parameter, return its name
+                if (parsedTypeName.equals(typeParameter.getName().asString())) {
+                    return typeParameter.getName().asString();
+                }
             }
         }
 
-        // If none of the above conditions are met, the types are not the same
-        return false;
+        // If no match is found, return the parsed type
+        return parsedType.asString();
     }
 
-    private static CompilationUnit getCompilationUnit(Method method) {
+    public static CompilationUnit getCompilationUnit(Method method) {
         String sourceRootPath = "src/main/java"; // Adjust this path if your structure is different
 
         // Parsing the source file
