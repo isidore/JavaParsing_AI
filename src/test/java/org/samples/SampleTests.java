@@ -18,16 +18,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SampleTests {
     @Test
-    @UseReporter(VisualStudioCodeReporter.class)
     public void testLineNumbersForPerson() throws Exception {
         var expected = """
-                Person.getFirstName() Lines:8-10
-                Person.getAge(int) Lines:13-14
-                Person.getAge(int,java.lang.Object) Lines:16-17
-                Person.getAge(int,java.lang.Object[]) Lines:19-20
-                Person.getAge(int,java.util.List) Lines:22-23
-                Person.getAge(int,java.util.Map) Lines:25-26
-                """;
+            Person.getFirstName() Lines:8-10
+            Person.getAge(int) Lines:13-14
+            Person.getAge(int,java.lang.Object) Lines:16-17
+            Person.getAge(int,java.lang.Object[]) Lines:19-20
+            Person.getAge(int,java.util.List) Lines:22-23
+            Person.getAge(int,java.util.Map) Lines:25-26
+            Person.getAge(java.lang.String,java.lang.Object[]) Lines:28-29
+            Person.getAge(int,java.lang.Object[][]) Lines:31-32
+            """;
 
         var m = new Method[] {
                 Person.class.getMethod("getFirstName"),
@@ -35,7 +36,9 @@ public class SampleTests {
                 Person.class.getMethod("getAge", int.class, Object.class),
                 Person.class.getMethod("getAge", int.class, Object[].class),
                 Person.class.getMethod("getAge", int.class, List.class),
-                Person.class.getMethod("getAge", int.class, Map.class)
+                Person.class.getMethod("getAge", int.class, Map.class),
+                Person.class.getMethod("getAge", String.class, Object[].class),
+                Person.class.getMethod("getAge", int.class, Object[][].class)
 
         };
         Approvals.verifyAll("", m, SampleTests::getLineNumbers, new Options().inline(expected));
