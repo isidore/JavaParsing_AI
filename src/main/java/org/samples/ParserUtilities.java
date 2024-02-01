@@ -81,10 +81,13 @@ public class ParserUtilities {
     public static String convertParsedParameterToCompiledTypeSimpleName(Parameter parameter, List<TypeParameter> methodTypeParameters) {
         Type type = parameter.getType();
 
+        // Handle varargs, which are syntactically similar to arrays in the type system
+        boolean isVarArg = parameter.isVarArgs();
+
         // Check if the parameter type is a generic type parameter
-        if (methodTypeParameters.stream().anyMatch(tp -> type.toString().startsWith(tp.getNameAsString()))) {
-            // Handle arrays of generic type by counting array levels
-            long arrayCount = type.toString().chars().filter(ch -> ch == '[').count();
+        if (methodTypeParameters.stream().anyMatch(tp -> type.toString().startsWith(tp.getNameAsString())) || isVarArg) {
+            // Adjust for varargs or regular arrays
+            long arrayCount = type.toString().chars().filter(ch -> ch == '[').count() + (isVarArg ? 1 : 0); // Add an extra array level for varargs
             String baseType = "Object";
             // Construct the array representation if needed
             String arraySuffix = "";
@@ -93,8 +96,7 @@ public class ParserUtilities {
             }
             return baseType + arraySuffix;
         } else {
-            // For non-generic types, simplify the handling by considering only the first part before "<"
-            // This might need refinement for more complex cases
+            // For non-generic types, return the type name directly, removing generics information
             String typeName = type.toString();
             int genericMarkerIndex = typeName.indexOf('<');
             if (genericMarkerIndex != -1) {
@@ -103,5 +105,4 @@ public class ParserUtilities {
             return typeName;
         }
     }
-
 }
