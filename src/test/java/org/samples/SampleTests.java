@@ -57,17 +57,16 @@ public class SampleTests {
     public void testParameterConversion() throws Exception {
         CompilationUnit cu = ParserUtilities.getCompilationUnit(ParameterSamples.class.getMethods()[0]);
         MethodDeclaration methodDeclaration = cu.findFirst(MethodDeclaration.class, md -> true).get();
-        String parameterType = ParserUtilities.convertParsedParameterToCompiledTypeSimpleName(
-                methodDeclaration.getParameters().get(0),
+        assertEquals("Map", getConvertedParameterType(methodDeclaration, 0));
+        assertEquals("Object", getConvertedParameterType(methodDeclaration, 1));
+        assertEquals("Object[]", getConvertedParameterType(methodDeclaration, 2));
+        assertEquals("Object[][]", getConvertedParameterType(methodDeclaration, 3));
+        assertEquals("Object[][]", getConvertedParameterType(methodDeclaration, 4));
+    }
+
+    private static String getConvertedParameterType(MethodDeclaration methodDeclaration, int parameterindex) {
+        return ParserUtilities.convertParsedParameterToCompiledTypeSimpleName(
+                methodDeclaration.getParameters().get(parameterindex),
                 methodDeclaration.getTypeParameters());
-        assertEquals("Map", parameterType);
-        parameterType = ParserUtilities.convertParsedParameterToCompiledTypeSimpleName(
-                methodDeclaration.getParameters().get(1),
-                methodDeclaration.getTypeParameters());
-        assertEquals("Object", parameterType);
-        parameterType = ParserUtilities.convertParsedParameterToCompiledTypeSimpleName(
-                methodDeclaration.getParameters().get(2),
-                methodDeclaration.getTypeParameters());
-        assertEquals("Object[]", parameterType);
     }
 }

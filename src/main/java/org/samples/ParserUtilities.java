@@ -78,36 +78,30 @@ public class ParserUtilities {
         return cu;
     }
 
-    public static String convertParsedParameterToCompiledTypeSimpleName(Parameter parameter,
-            List<TypeParameter> typeParameters) {
-        var type = parameter.getType();
+    public static String convertParsedParameterToCompiledTypeSimpleName(Parameter parameter, List<TypeParameter> methodTypeParameters) {
+        Type type = parameter.getType();
 
-        // Handling arrays of generic types
-        if (type.isArrayType()) {
-            ArrayType arrayType = type.asArrayType();
-            Type componentType = arrayType.getComponentType();
-            // Check if the component type is a generic type
-            if (isGenericType(componentType, typeParameters)) {
-                return "Object[]";
+        // Check if the parameter type is a generic type parameter
+        if (methodTypeParameters.stream().anyMatch(tp -> type.toString().startsWith(tp.getNameAsString()))) {
+            // Handle arrays of generic type by counting array levels
+            long arrayCount = type.toString().chars().filter(ch -> ch == '[').count();
+            String baseType = "Object";
+            // Construct the array representation if needed
+            String arraySuffix = "";
+            for (int i = 0; i < arrayCount; i++) {
+                arraySuffix += "[]";
             }
-            // Add handling for arrays of specific types if needed
+            return baseType + arraySuffix;
+        } else {
+            // For non-generic types, simplify the handling by considering only the first part before "<"
+            // This might need refinement for more complex cases
+            String typeName = type.toString();
+            int genericMarkerIndex = typeName.indexOf('<');
+            if (genericMarkerIndex != -1) {
+                typeName = typeName.substring(0, genericMarkerIndex);
+            }
+            return typeName;
         }
-
-        // Handling generic types
-        if (isGenericType(type, typeParameters)) {
-            return "Object";
-        } else if (type.isClassOrInterfaceType()) {
-            // Gets the simple name of the class or interface type
-            return type.asClassOrInterfaceType().getName().getIdentifier();
-        }
-
-        // Add more conditions here if you need to handle other types like primitives,
-        // etc.
-
-        return type.toString();
     }
 
-    private static boolean isGenericType(Type type, List<TypeParameter> typeParameters) {
-        return typeParameters.stream().anyMatch(tp -> tp.getName().asString().equals(type.asString()));
-    }
 }
