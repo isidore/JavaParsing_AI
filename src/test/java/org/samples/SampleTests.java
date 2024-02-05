@@ -6,8 +6,6 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 
 import org.approvaltests.Approvals;
 import org.approvaltests.core.Options;
-import org.approvaltests.reporters.UseReporter;
-import org.approvaltests.reporters.macosx.VisualStudioCodeReporter;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;

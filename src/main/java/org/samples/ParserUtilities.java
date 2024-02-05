@@ -6,23 +6,25 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
-import com.github.javaparser.ast.type.ArrayType;
-import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.type.TypeParameter;
 import com.github.javaparser.utils.SourceRoot;
 import com.spun.util.FormattedException;
 import org.lambda.query.Query;
-import org.lambda.query.Queryable;
 
 import java.lang.reflect.Method;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class ParserUtilities {
+
+    public static final List<String> SOURCE_PATHS = new ArrayList<>();
+
+    static {
+        SOURCE_PATHS.add("src/main/java");
+        SOURCE_PATHS.add("src/test/java");
+    }
 
     public static Range getLineNumbersForMethod(Method method) throws Exception {
         MethodDeclaration methodDeclaration = getMethodDeclaration(method);
@@ -69,19 +71,27 @@ public class ParserUtilities {
     }
 
     public static CompilationUnit getCompilationUnit(Method method) {
-        String sourceRootPath = "src/main/java"; // Adjust this path if your structure is different
+    // Parsing the source file
+    CompilationUnit cu = null;
+    ParseProblemException parseException = null;
 
-        // Parsing the source file
+    for (String sourceRootPath : SOURCE_PATHS) {
         SourceRoot sourceRoot = new SourceRoot(Paths.get(sourceRootPath));
-        CompilationUnit cu;
         try {
             cu = sourceRoot.parse(method.getDeclaringClass().getPackageName(),
                     method.getDeclaringClass().getSimpleName() + ".java");
+            break;
         } catch (ParseProblemException e) {
-            throw new RuntimeException("Error parsing the source file: " + e.getMessage(), e);
+            parseException = e;
         }
-        return cu;
     }
+
+    if (cu == null && parseException != null) {
+        throw new RuntimeException("Error parsing the source file: " + parseException.getMessage(), parseException);
+    }
+
+    return cu;
+}
 
     public static String convertParsedParameterToCompiledTypeSimpleName(Parameter parameter, List<TypeParameter> methodTypeParameters) {
         Type type = parameter.getType();
