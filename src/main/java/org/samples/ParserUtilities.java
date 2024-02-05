@@ -25,6 +25,11 @@ import java.util.stream.Collectors;
 public class ParserUtilities {
 
     public static Range getLineNumbersForMethod(Method method) throws Exception {
+        MethodDeclaration methodDeclaration = getMethodDeclaration(method);
+        return methodDeclaration.getRange().get();
+    }
+
+    public static MethodDeclaration getMethodDeclaration(Method method) {
         CompilationUnit cu = getCompilationUnit(method);
         MethodDeclaration methodDeclaration = cu.findFirst(MethodDeclaration.class, md -> findMethod(method, md))
                 .orElse(null);
@@ -32,7 +37,7 @@ public class ParserUtilities {
             throw new FormattedException("Method Not Found:\n%s.%s(params...)",
                     method.getDeclaringClass().getSimpleName(), method.getName());
         }
-        return methodDeclaration.getRange().get();
+        return methodDeclaration;
     }
 
     private static boolean findMethod(Method compiledMethod, MethodDeclaration parsedMethod) {

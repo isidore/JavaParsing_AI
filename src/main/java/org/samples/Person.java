@@ -30,4 +30,8 @@ public class Person
 
   public <T> void getAge(int limit, T[][] other){
   }
+
+  public <T> void getAge(String limit, T[]... other){
+  }
+
 }
